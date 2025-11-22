@@ -1,10 +1,13 @@
 openapi: 3.0.0
 info:
   title: Product Recall AI API
-  description: API for Product Recall and Customer Safety Automation System
+  description: API for Product Recall and Customer Safety Automation System. Use this to connect with IBM Orchestrate.
   version: 1.0.0
 servers:
+  - url: https://recalloperator.vercel.app
+    description: Production Server (Vercel)
   - url: http://localhost:3000
+    description: Local Development Server
 paths:
   /api/auth/login:
     post:
@@ -13,7 +16,7 @@ paths:
       requestBody:
         required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
               properties:
@@ -23,9 +26,6 @@ paths:
                 password:
                   type: string
                   example: password123
-                document:
-                  type: string
-                  format: binary
       responses:
         '200':
           description: Successful login
@@ -43,8 +43,103 @@ paths:
                         type: string
                       businessId:
                         type: string
-        '401':
-          description: Invalid credentials
+  /api/products:
+    get:
+      summary: Get All Products
+      description: Retrieve a list of products. Can filter by businessId.
+      parameters:
+        - in: query
+          name: businessId
+          schema:
+            type: string
+          description: Filter by Business ID (use 'all' for everything)
+      responses:
+        '200':
+          description: List of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    name:
+                      type: string
+                    riskScore:
+                      type: integer
+                    status:
+                      type: string
+  /api/products/simulate:
+    post:
+      summary: Trigger Risk Simulation
+      description: Manually triggers a risk event simulation for a product.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                businessId:
+                  type: string
+                  default: BID-12345
+      responses:
+        '200':
+          description: Simulation result
+  /api/logs:
+    get:
+      summary: Get Activity Logs
+      description: Retrieve system activity logs (risk detections, emails sent, refunds).
+      parameters:
+        - in: query
+          name: businessId
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    action:
+                      type: string
+                    details:
+                      type: string
+  /api/agent/status:
+    get:
+      summary: Get AI Agent Status
+      description: Check if the autonomous monitoring agent is running.
+      responses:
+        '200':
+          description: Agent status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isRunning:
+                    type: boolean
+  /api/agent/start:
+    post:
+      summary: Start AI Agent
+      description: Starts the autonomous risk monitoring agent.
+      responses:
+        '200':
+          description: Agent started
+  /api/agent/stop:
+    post:
+      summary: Stop AI Agent
+      description: Stops the autonomous risk monitoring agent.
+      responses:
+        '200':
+          description: Agent stopped
 components:
   securitySchemes:
     bearerAuth:
