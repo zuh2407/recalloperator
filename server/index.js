@@ -35,12 +35,17 @@ app.get('/', (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
-    console.log(`🌐 Frontend: http://localhost:5174`);
+// Start Server only if not in Vercel environment
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`✅ Server running on port ${PORT}`);
+        console.log(`🌐 Frontend: http://localhost:5174`);
 
-    // Start the AI Agent after 2 seconds
-    setTimeout(() => {
-        startAgent();
-    }, 2000);
-});
+        // Start the AI Agent after 2 seconds
+        setTimeout(() => {
+            startAgent();
+        }, 2000);
+    });
+}
+
+module.exports = app;
