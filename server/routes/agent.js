@@ -38,7 +38,7 @@ router.post('/stop', (req, res) => {
 // Trigger single agent cycle (tick)
 router.post('/tick', async (req, res) => {
     try {
-        const result = await runAgentCycle();
+        const result = await runAgentCycle(req.body.products);
         res.json(result);
     } catch (error) {
         console.error('Error running agent cycle:', error);

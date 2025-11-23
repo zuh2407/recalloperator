@@ -58,18 +58,27 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        fetchData();
-        const interval = setInterval(fetchData, 2000); // Poll data every 2 seconds
-        return () => clearInterval(interval);
-    }, []);
+        if (!agentRunning) {
+            fetchData();
+            const interval = setInterval(fetchData, 2000); // Poll data every 2 seconds
+            return () => clearInterval(interval);
+        }
+    }, [agentRunning]);
 
-    // Agent Heartbeat for Vercel (Trigger agent cycle from frontend)
     useEffect(() => {
         let agentInterval;
         if (agentRunning) {
             agentInterval = setInterval(async () => {
                 try {
-                    await axios.post('/api/agent/tick');
+                    // Send current products state to server for processing (Stateless Vercel fix)
+                    const res = await axios.post('/api/agent/tick', { products: allProducts });
+
+                    if (res.data.products) {
+                        setAllProducts(res.data.products);
+                    }
+                    if (res.data.logs && res.data.logs.length > 0) {
+                        setAllLogs(prev => [...prev, ...res.data.logs]);
+                    }
                 } catch (error) {
                     console.error('Agent tick failed:', error);
                 }
@@ -78,7 +87,7 @@ const Dashboard = () => {
         return () => {
             if (agentInterval) clearInterval(agentInterval);
         };
-    }, [agentRunning]);
+    }, [agentRunning, allProducts]);
 
     const products = selectedStore === 'all' ? allProducts : allProducts.filter(p => p.businessId === selectedStore);
     const logs = selectedStore === 'all' ? allLogs : allLogs.filter(l => l.businessId === selectedStore);

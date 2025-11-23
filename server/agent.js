@@ -24,9 +24,13 @@ const stopAgent = () => {
     console.log('🛑 AI Agent Stopped.');
 };
 
-const monitorRisks = async () => {
+const monitorRisks = async (clientProducts = null) => {
+    // Use client products if provided (for Vercel statelessness), otherwise use in-memory
+    const targetProducts = clientProducts || products;
+    const newLogs = [];
+
     // 1. Fluctuate Scores (Aggressive for demo)
-    products.forEach(p => {
+    targetProducts.forEach(p => {
         if (p.status !== 'Recalled') {
             // More aggressive fluctuation: -3 to +3 for faster demo
             const change = Math.floor(Math.random() * 7) - 3;
@@ -44,67 +48,69 @@ const monitorRisks = async () => {
     });
 
     // 2. Perception: Check for CRITICAL risk (≥ 8)
-    const riskyProducts = products.filter(p => p.riskScore >= 8 && p.status !== 'Recalled');
+    const riskyProducts = targetProducts.filter(p => p.riskScore >= 8 && p.status !== 'Recalled');
 
-    if (riskyProducts.length === 0) {
-        return;
-    }
+    if (riskyProducts.length > 0) {
+        for (const product of riskyProducts) {
+            console.log(`\n🚨 CRITICAL RISK DETECTED: ${product.name} (Score: ${product.riskScore})`);
 
-    for (const product of riskyProducts) {
-        console.log(`\n🚨 CRITICAL RISK DETECTED: ${product.name} (Score: ${product.riskScore})`);
-
-        // 3. Reasoning: Identify affected customers
-        const affectedCustomers = customers.filter(c =>
-            c.businessId === product.businessId &&
-            c.purchasedProducts.includes(product.id)
-        );
-
-        console.log(`👥 Identified ${affectedCustomers.length} affected customers`);
-
-        // 4. Action: Process refunds and send emails (CONTINUOUSLY)
-        // Note: We don't mark as "Recalled" so it keeps sending emails!
-
-        logs.push({
-            timestamp: new Date(),
-            type: 'RISK_DETECTED',
-            businessId: product.businessId,
-            message: `Critical Risk (Score ${product.riskScore}) detected for ${product.name}. Processing actions...`
-        });
-
-        for (const customer of affectedCustomers) {
-            // Calculate refund amount
-            const refundAmount = Math.round(product.price * 100);
-
-            // Process Refund via Stripe
-            console.log(`💳 Processing Stripe refund for ${customer.name}...`);
-            const refundResult = await processRefund(refundAmount, 'usd', customer.id);
-
-            // Send Email with refund details
-            console.log(`📧 Sending email to ${customer.email}...`);
-            const emailResult = await sendRecallEmail(
-                customer.email,
-                product.name,
-                customer.name,
-                refundAmount
+            // 3. Reasoning: Identify affected customers
+            const affectedCustomers = customers.filter(c =>
+                c.businessId === product.businessId &&
+                c.purchasedProducts.includes(product.id)
             );
 
-            logs.push({
+            console.log(`👥 Identified ${affectedCustomers.length} affected customers`);
+
+            // 4. Action: Process refunds and send emails (CONTINUOUSLY)
+            const logEntry = {
                 timestamp: new Date(),
-                type: 'ACTION_TAKEN',
+                type: 'RISK_DETECTED',
                 businessId: product.businessId,
-                message: `Refunded $${(refundAmount / 100).toFixed(2)} & Emailed ${customer.name} for ${product.name}`,
-                details: {
-                    refund: refundResult,
-                    email: emailResult,
-                    refundAmount: refundAmount
-                }
-            });
+                message: `Critical Risk (Score ${product.riskScore}) detected for ${product.name}. Processing actions...`
+            };
+            logs.push(logEntry);
+            newLogs.push(logEntry);
 
-            console.log(`✅ Actions completed for ${customer.name}`);
+            for (const customer of affectedCustomers) {
+                // Calculate refund amount
+                const refundAmount = Math.round(product.price * 100);
+
+                // Process Refund via Stripe
+                console.log(`💳 Processing Stripe refund for ${customer.name}...`);
+                const refundResult = await processRefund(refundAmount, 'usd', customer.id);
+
+                // Send Email with refund details
+                console.log(`📧 Sending email to ${customer.email}...`);
+                const emailResult = await sendRecallEmail(
+                    customer.email,
+                    product.name,
+                    customer.name,
+                    refundAmount
+                );
+
+                const actionLog = {
+                    timestamp: new Date(),
+                    type: 'ACTION_TAKEN',
+                    businessId: product.businessId,
+                    message: `Refunded $${(refundAmount / 100).toFixed(2)} & Emailed ${customer.name} for ${product.name}`,
+                    details: {
+                        refund: refundResult,
+                        email: emailResult,
+                        refundAmount: refundAmount
+                    }
+                };
+                logs.push(actionLog);
+                newLogs.push(actionLog);
+
+                console.log(`✅ Actions completed for ${customer.name}`);
+            }
+
+            console.log(`\n📝 Total actions logged: ${logs.length}\n`);
         }
-
-        console.log(`\n📝 Total actions logged: ${logs.length}\n`);
     }
+
+    return { products: targetProducts, logs: newLogs };
 };
 
 // Simulation Helper: Force a product to Critical Risk (≥ 8)
@@ -133,10 +139,10 @@ const getStatus = () => {
 };
 
 // Run a single cycle of risk monitoring (for Vercel/Serverless)
-const runAgentCycle = async () => {
+const runAgentCycle = async (clientProducts = null) => {
     console.log('🔄 Running single agent cycle...');
-    await monitorRisks();
-    return { success: true, message: 'Agent cycle completed' };
+    const result = await monitorRisks(clientProducts);
+    return { success: true, message: 'Agent cycle completed', ...result };
 };
 
 module.exports = { startAgent, stopAgent, simulateRiskEvent, getStatus, runAgentCycle };
