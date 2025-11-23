@@ -59,9 +59,26 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 2000); // Poll every 2 seconds
+        const interval = setInterval(fetchData, 2000); // Poll data every 2 seconds
         return () => clearInterval(interval);
     }, []);
+
+    // Agent Heartbeat for Vercel (Trigger agent cycle from frontend)
+    useEffect(() => {
+        let agentInterval;
+        if (agentRunning) {
+            agentInterval = setInterval(async () => {
+                try {
+                    await axios.post('/api/agent/tick');
+                } catch (error) {
+                    console.error('Agent tick failed:', error);
+                }
+            }, 3000); // Trigger every 3 seconds
+        }
+        return () => {
+            if (agentInterval) clearInterval(agentInterval);
+        };
+    }, [agentRunning]);
 
     const products = selectedStore === 'all' ? allProducts : allProducts.filter(p => p.businessId === selectedStore);
     const logs = selectedStore === 'all' ? allLogs : allLogs.filter(l => l.businessId === selectedStore);

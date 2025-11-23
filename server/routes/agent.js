@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { startAgent, stopAgent, getStatus } = require('../agent');
+const { startAgent, stopAgent, getStatus, runAgentCycle } = require('../agent');
 
 // Get agent status
 router.get('/status', (req, res) => {
@@ -31,6 +31,17 @@ router.post('/stop', (req, res) => {
         res.json({ message: 'AI Agent stopped', isRunning: false });
     } catch (error) {
         console.error('Error stopping agent:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Trigger single agent cycle (tick)
+router.post('/tick', async (req, res) => {
+    try {
+        const result = await runAgentCycle();
+        res.json(result);
+    } catch (error) {
+        console.error('Error running agent cycle:', error);
         res.status(500).json({ error: error.message });
     }
 });

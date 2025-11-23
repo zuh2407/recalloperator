@@ -132,4 +132,11 @@ const getStatus = () => {
     return { isRunning };
 };
 
-module.exports = { startAgent, stopAgent, simulateRiskEvent, getStatus };
+// Run a single cycle of risk monitoring (for Vercel/Serverless)
+const runAgentCycle = async () => {
+    console.log('🔄 Running single agent cycle...');
+    await monitorRisks();
+    return { success: true, message: 'Agent cycle completed' };
+};
+
+module.exports = { startAgent, stopAgent, simulateRiskEvent, getStatus, runAgentCycle };
