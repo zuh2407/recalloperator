@@ -18,7 +18,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showRegisterModal, setShowRegisterModal] = useState(false);
     const [registerForm, setRegisterForm] = useState({ businessId: '', password: '', name: '' });
-    const [agentRunning, setAgentRunning] = useState(true);
+    const [agentRunning, setAgentRunning] = useState(false);
 
     const fetchData = async () => {
         try {
@@ -58,8 +58,8 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
+        fetchData();
         if (!agentRunning) {
-            fetchData();
             const interval = setInterval(fetchData, 2000); // Poll data every 2 seconds
             return () => clearInterval(interval);
         }
