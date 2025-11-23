@@ -98,6 +98,7 @@ const Dashboard = () => {
             if (agentRunning) {
                 await axios.post('/api/agent/stop');
                 setAgentRunning(false);
+                setAllLogs([]); // Clear logs on stop
             } else {
                 await axios.post('/api/agent/start');
                 setAgentRunning(true);
@@ -199,6 +200,24 @@ const Dashboard = () => {
                                     Start Monitoring
                                 </>
                             )}
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const email = prompt("Enter email to receive test:", "zuhair2407atham@gmail.com");
+                                    if (email) {
+                                        alert("Sending test email...");
+                                        await axios.post('/api/agent/debug/email', { to: email });
+                                        alert("✅ Test email sent! Check your inbox.");
+                                    }
+                                } catch (e) {
+                                    alert("❌ Failed: " + (e.response?.data?.error || e.message));
+                                }
+                            }}
+                            className="flex items-center px-4 py-2.5 rounded-xl text-sm font-bold bg-slate-800 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-500/10 transition shadow-lg"
+                        >
+                            📧 Test Email
                         </button>
                     </div>
                 </div>

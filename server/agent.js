@@ -9,18 +9,11 @@ const startAgent = () => {
     if (isRunning) return;
     isRunning = true;
     console.log('🤖 AI Agent Started: Continuous Risk Monitoring (0-10 scale)...');
-    console.log('📧 Emails will be sent CONTINUOUSLY when risk ≥8');
-    console.log('🔄 Risk scores fluctuate every 3 seconds');
-
-    intervalId = setInterval(async () => {
-        await monitorRisks();
-    }, 3000); // Check every 3 seconds
 };
 
 const stopAgent = () => {
     if (!isRunning) return;
     isRunning = false;
-    clearInterval(intervalId);
     console.log('🛑 AI Agent Stopped.');
 };
 
@@ -32,8 +25,8 @@ const monitorRisks = async (clientProducts = null) => {
     // 1. Fluctuate Scores (Aggressive for demo)
     targetProducts.forEach(p => {
         if (p.status !== 'Recalled') {
-            // More aggressive fluctuation: -3 to +3 for faster demo
-            const change = Math.floor(Math.random() * 7) - 3;
+            // More aggressive fluctuation: -2 to +5 for faster demo
+            const change = Math.floor(Math.random() * 8) - 2;
             let newScore = p.riskScore + change;
             newScore = Math.max(0, Math.min(10, newScore)); // Clamp 0-10
 
@@ -89,11 +82,13 @@ const monitorRisks = async (clientProducts = null) => {
                     refundAmount
                 );
 
+                const emailStatus = emailResult.success ? 'Emailed' : 'Email FAILED';
+
                 const actionLog = {
                     timestamp: new Date(),
                     type: 'ACTION_TAKEN',
                     businessId: product.businessId,
-                    message: `Refunded $${(refundAmount / 100).toFixed(2)} & Emailed ${customer.name} for ${product.name}`,
+                    message: `Refunded $${(refundAmount / 100).toFixed(2)} & ${emailStatus} ${customer.name} for ${product.name}`,
                     details: {
                         refund: refundResult,
                         email: emailResult,

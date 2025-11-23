@@ -25,7 +25,9 @@ const ActivityLog = ({ logs }) => {
                             {getIcon(log.type)}
                         </div>
                         <div>
-                            <p className="text-sm text-slate-300">{log.message}</p>
+                            <p className={`text-sm ${log.message.includes('FAILED') ? 'text-rose-400 font-bold' : 'text-slate-300'}`}>
+                                {log.message}
+                            </p>
                             <p className="text-xs text-slate-500 mt-1">
                                 {new Date(log.timestamp).toLocaleTimeString()}
                             </p>
