@@ -11,7 +11,7 @@ const CustomerRegistry = ({ customers, fetchCustomers, businessId }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await axios.post(`http://localhost:3000/api/customers?businessId=${businessId}`, formData);
+            await axios.post(`/api/customers?businessId=${businessId}`, formData);
             setFormData({ name: '', email: '', phone: '' });
             setShowForm(false);
             fetchCustomers();

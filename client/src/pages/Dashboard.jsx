@@ -23,10 +23,10 @@ const Dashboard = () => {
     const fetchData = async () => {
         try {
             const [prodRes, logRes, custRes, agentRes] = await Promise.all([
-                axios.get('http://localhost:3000/api/products?businessId=all'),
-                axios.get('http://localhost:3000/api/logs?businessId=all'),
-                axios.get('http://localhost:3000/api/customers?businessId=all'),
-                axios.get('http://localhost:3000/api/agent/status')
+                axios.get('/api/products?businessId=all'),
+                axios.get('/api/logs?businessId=all'),
+                axios.get('/api/customers?businessId=all'),
+                axios.get('/api/agent/status')
             ]);
 
             setAllProducts(prodRes.data);
@@ -41,7 +41,7 @@ const Dashboard = () => {
             const storeList = await Promise.all(
                 uniqueStores.map(async (bid) => {
                     try {
-                        const userRes = await axios.get(`http://localhost:3000/api/auth/business/${bid}`);
+                        const userRes = await axios.get(`/api/auth/business/${bid}`);
                         return { businessId: bid, name: userRes.data.name };
                     } catch (error) {
                         return { businessId: bid, name: bid };
@@ -70,10 +70,10 @@ const Dashboard = () => {
     const toggleMonitoring = async () => {
         try {
             if (agentRunning) {
-                await axios.post('http://localhost:3000/api/agent/stop');
+                await axios.post('/api/agent/stop');
                 setAgentRunning(false);
             } else {
-                await axios.post('http://localhost:3000/api/agent/start');
+                await axios.post('/api/agent/start');
                 setAgentRunning(true);
             }
         } catch (error) {
@@ -84,7 +84,7 @@ const Dashboard = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:3000/api/auth/register', registerForm);
+            const response = await axios.post('/api/auth/register', registerForm);
             alert(`Registration successful! ${response.data.productsCreated} products created for ${registerForm.name}.`);
             setShowRegisterModal(false);
             setRegisterForm({ businessId: '', password: '', name: '' });
@@ -158,8 +158,8 @@ const Dashboard = () => {
                         <button
                             onClick={toggleMonitoring}
                             className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold transition shadow-lg ${agentRunning
-                                    ? 'bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400'
-                                    : 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-emerald-400'
+                                ? 'bg-gradient-to-r from-rose-600 to-rose-500 text-white hover:from-rose-500 hover:to-rose-400'
+                                : 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white hover:from-emerald-500 hover:to-emerald-400'
                                 }`}
                         >
                             {agentRunning ? (

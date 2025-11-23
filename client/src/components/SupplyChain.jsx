@@ -14,7 +14,7 @@ const SupplyChain = ({ businessId }) => {
 
     const fetchSupplyChain = async () => {
         try {
-            const res = await axios.get(`http://localhost:3000/api/supply-chain?businessId=${businessId}`);
+            const res = await axios.get(`/api/supply-chain?businessId=${businessId}`);
             setSupplyChainData(res.data);
             setLoading(false);
         } catch (error) {
