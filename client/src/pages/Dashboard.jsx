@@ -22,17 +22,16 @@ const Dashboard = () => {
 
     const fetchData = async () => {
         try {
-            const [prodRes, logRes, custRes, agentRes] = await Promise.all([
+            const [prodRes, logRes, custRes] = await Promise.all([
                 axios.get('/api/products?businessId=all'),
                 axios.get('/api/logs?businessId=all'),
-                axios.get('/api/customers?businessId=all'),
-                axios.get('/api/agent/status')
+                axios.get('/api/customers?businessId=all')
             ]);
 
             setAllProducts(prodRes.data);
             setAllLogs(logRes.data);
             setAllCustomers(custRes.data);
-            setAgentRunning(agentRes.data.isRunning);
+            // Removed: setAgentRunning(agentRes.data.isRunning); - Client controls this now
 
             // Extract unique stores
             const uniqueStores = [...new Set(prodRes.data.map(p => p.businessId))];
