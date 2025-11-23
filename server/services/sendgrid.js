@@ -1,18 +1,21 @@
-const nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
 
-// Create Gmail transporter
-// Create Gmail transporter
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true, // use SSL
-  auth: {
-    user: 'zuhair2407atham@gmail.com', // HARDCODED FOR HACKATHON DEMO
-    pass: 'yiju vaur jhip nmju'        // HARDCODED FOR HACKATHON DEMO
-  }
-});
+// Set SendGrid API Key
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+} else {
+  console.warn('⚠️ SENDGRID_API_KEY is missing. Emails will not be sent.');
+}
 
 const sendRecallEmail = async (to, productName, customerName, refundAmount) => {
+  // Check if API key is present
+  if (!process.env.SENDGRID_API_KEY) {
+    console.error('❌ Cannot send email: SENDGRID_API_KEY is missing.');
+    return { success: false, error: 'SENDGRID_API_KEY missing' };
+  }
+
+  const fromEmail = process.env.SENDGRID_FROM_EMAIL || 'zuhair2407atham@gmail.com'; // Fallback or user provided
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -93,20 +96,23 @@ const sendRecallEmail = async (to, productName, customerName, refundAmount) => {
     </html>
   `;
 
-  const mailOptions = {
-    from: '"ZuhairStore Safety AI 🛡️" <' + process.env.GMAIL_USER + '>',
+  const msg = {
     to: to,
+    from: fromEmail, // Use the verified sender
     subject: `🚨 URGENT: Product Recall - ${productName} - Refund Processed`,
     text: `URGENT RECALL: ${productName}. Risk Score ≥8 detected. Refund of $${(refundAmount / 100).toFixed(2)} processed automatically. Please discard immediately.`,
     html: htmlContent,
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`[Gmail] ✅ Email sent to ${to} - Message ID: ${info.messageId}`);
-    return { success: true, messageId: info.messageId };
+    const info = await sgMail.send(msg);
+    console.log(`[SendGrid] ✅ Email sent to ${to}`);
+    return { success: true, messageId: 'sendgrid-id' };
   } catch (error) {
-    console.error('[Gmail] ❌ Error:', error.message);
+    console.error('[SendGrid] ❌ Error:', error.message);
+    if (error.response) {
+      console.error(error.response.body);
+    }
     return { success: false, error: error.message };
   }
 };
