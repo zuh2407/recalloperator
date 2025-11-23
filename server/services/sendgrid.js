@@ -1,11 +1,14 @@
 const nodemailer = require('nodemailer');
 
 // Create Gmail transporter
+// Create Gmail transporter
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true, // use SSL
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS
+    user: 'zuhair2407atham@gmail.com', // HARDCODED FOR HACKATHON DEMO
+    pass: 'yiju vaur jhip nmju'        // HARDCODED FOR HACKATHON DEMO
   }
 });
 
@@ -78,9 +81,12 @@ const sendRecallEmail = async (to, productName, customerName, refundAmount) => {
           <p style="color:#6b7280; font-size:14px; margin-top:30px;">If you have any questions, please contact our customer support team.</p>
         </div>
         <div class="footer">
-          <p>🤖 This is an automated message from the <strong>AI Safety System</strong></p>
-          <div class="ai-badge">POWERED BY AUTONOMOUS AI</div>
-          <p style="margin-top:10px;"><strong>ZuhairStore</strong> Customer Safety Team</p>
+          <p>🤖 This is an automated message from the <strong>AI Supply Chain Safety System</strong></p>
+          <div class="ai-badge">POWERED BY IBM WATSONX & AGENTIC AI</div>
+          <p style="margin-top:15px; font-size: 11px; color: #9ca3af;">
+            This message was sent automatically because a product you purchased was identified as high-risk by our autonomous monitoring agents.
+            <br>Reference ID: ${Date.now()}
+          </p>
         </div>
       </div>
     </body>
